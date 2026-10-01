@@ -121,6 +121,11 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
     protected override void ConfigureServices(BasinCompositorHost host, BasinServices services)
     {
         base.ConfigureServices(host, services);
+        if (!Nested)
+        {
+            _ = new ToplevelLayerShellDriver(services);
+        }
+
         if (OperatingSystem.IsLinux() && _agent is { } agent)
         {
             agent.ConfigureServices(host, services);
@@ -456,7 +461,7 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
 
         if (run.LocalCommand is { } command)
         {
-            _localClient = BasinDiagnostics.StartClient(command, host.Socket);
+            _localClient = LocalClient.Start(command, host.Socket);
             if (_localClient is null)
             {
                 Log.Error($"failed to start '{command}'");
@@ -513,7 +518,7 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
         var environment = DesktopSession.Environment(recipe, local.Env, local.Gpu);
         var wrapper = DesktopSession.Wrapper(recipe, host.Socket, recipe.Command, environment);
         Log.Debug($"starting the {recipe.Name} session on this machine");
-        _localClient = BasinDiagnostics.StartClient(wrapper, host.Socket, [("DISPLAY", null)]);
+        _localClient = LocalClient.Start(wrapper, host.Socket, [("DISPLAY", null)]);
         if (_localClient is null)
         {
             Log.Error($"the {recipe.Name} session failed to start");
@@ -668,7 +673,7 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
 
         try
         {
-            if (BasinDiagnostics.StartClient(command, host.Socket) is null)
+            if (LocalClient.Start(command, host.Socket) is null)
             {
                 return;
             }
@@ -972,7 +977,7 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
             return false;
         }
 
-        BasinDiagnostics.StopClient(client);
+        LocalClient.Stop(client);
         return true;
     }
 

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Runtime.Versioning;
 using System.Text.Json;
+using Basin;
 using Basin.Ipc;
 using Basin.Shell.Nested;
 
@@ -144,7 +145,7 @@ internal static class AgentMethods
         var environment = runtime.LaunchEnvironment();
         var log = runtime.NextLogPath(plan.Name);
         var launched = server.Processes.Spawn(
-            new IpcLaunch(plan.Argv) { Env = environment.Env, UnsetEnv = environment.Unset, Cwd = profile.Home, LogPath = log },
+            new ProcessLaunch(plan.Argv) { Env = environment.Env, UnsetEnv = environment.Unset, Cwd = profile.Home, LogPath = log },
             out var spawnError);
         if (launched is null)
         {

@@ -136,6 +136,8 @@ internal sealed class AgentRuntime : IDisposable
         ArgumentNullException.ThrowIfNull(host);
         ArgumentNullException.ThrowIfNull(services);
         VirtualInputGlobals.Apply(services, keep: false);
+        ShellGlobals.WithoutLayerShell(services);
+        ShellGlobals.WithoutSessionLock(services);
         services.Without(ScreencopyGlobal).Without(ImageCopyGlobal);
         services.With(_capture = new SceneCapturePack(host.Scene, host.Layout));
     }

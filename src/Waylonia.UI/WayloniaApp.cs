@@ -368,8 +368,15 @@ internal class WayloniaApp : Application, ISessionHost, ISshPrompter
 
     protected virtual IReadOnlyList<IProtocolModule>? ExtraModules() => null;
 
-    protected virtual void ConfigureServices(BasinCompositorHost host, BasinServices services) =>
+    protected virtual void ConfigureServices(BasinCompositorHost host, BasinServices services)
+    {
         VirtualInputGlobals.Apply(services, _run!.Host.VirtualInput);
+        ShellGlobals.WithoutSessionLock(services);
+        if (Nested)
+        {
+            ShellGlobals.WithoutLayerShell(services);
+        }
+    }
 
     protected virtual BasinCompositorHost CreateWindowsHost(BasinCompositorHost host, WayloniaRun run) =>
         throw new InvalidOperationException("windows mode needs a desktop host; this host runs the nested shell only");

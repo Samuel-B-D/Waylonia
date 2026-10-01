@@ -51,7 +51,15 @@ internal class CompositorHarness : IDisposable
         try
         {
             BasinCounters.Reset();
-            Host = new BasinCompositorHost(new BasinCompositorOptions { AppName = "waylonia-tests", ConfigureServices = services });
+            Host = new BasinCompositorHost(new BasinCompositorOptions
+            {
+                AppName = "waylonia-tests",
+                ConfigureServices = (host, registry) =>
+                {
+                    ConfigureShellGlobals(registry, nested is not null);
+                    services?.Invoke(host, registry);
+                },
+            });
             if (nested is { } options)
             {
                 ShellView = Host.CreateViewOutput(options.Width, options.Height, options.Scale, NestedShell.OutputKey);
@@ -83,6 +91,9 @@ internal class CompositorHarness : IDisposable
     private readonly IDisposable _gate;
 
     protected virtual IDisposable? AttachWindows(BasinCompositorHost host) => null;
+
+    protected virtual void ConfigureShellGlobals(Basin.BasinServices services, bool nested) =>
+        ShellGlobals.WithoutLayerShell(ShellGlobals.WithoutSessionLock(services));
 
     public sealed record NestedShellOptions(
         int Width = 800,

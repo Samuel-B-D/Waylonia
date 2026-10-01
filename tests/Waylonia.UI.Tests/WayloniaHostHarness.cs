@@ -25,6 +25,18 @@ internal sealed class WayloniaHostHarness : CompositorHarness
     protected override IDisposable? AttachWindows(BasinCompositorHost host) =>
         _windows = new ToplevelWindows(host, action => action(), requestFrame: () => FrameRequests++);
 
+    protected override void ConfigureShellGlobals(Basin.BasinServices services, bool nested)
+    {
+        if (nested)
+        {
+            base.ConfigureShellGlobals(services, nested);
+            return;
+        }
+
+        ShellGlobals.WithoutSessionLock(services);
+        _ = new ToplevelLayerShellDriver(services);
+    }
+
     protected override int HostWindowCount => Windows!.Windows.Count;
 
     public override void Pump()
