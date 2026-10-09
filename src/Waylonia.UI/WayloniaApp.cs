@@ -121,7 +121,7 @@ internal class WayloniaApp : Application, ISessionHost, ISshPrompter
         path => Bluecurve.Path(BluecurveIconSource.PlaceIcon(path)),
         Bluecurve.Path(BluecurveIconSource.KeyboardIcon));
 
-    private void ResolveIcon(string? session, string appId, string? clientIcon, Action<string?> resolved)
+    protected void ResolveIcon(string? session, string appId, string? clientIcon, Action<string?> resolved)
     {
         if (session is null || _registry?.Get(session) is not { } ssh)
         {
