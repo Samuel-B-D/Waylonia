@@ -26,6 +26,7 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
 
     private readonly List<System.Runtime.InteropServices.PosixSignalRegistration> _signals = [];
     private readonly Dictionary<ToplevelWindow, string> _sessionWindows = [];
+    private WindowIcon? _windowIcon;
     private ToplevelWindows? _windows;
     private HostDrag? _hostDrag;
     private Process? _localClient;
@@ -797,6 +798,8 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
 
     private void OnWindowOpened(ToplevelWindow window, WlClient? client)
     {
+        window.Icon = _windowIcon ??= new WindowIcon(
+            typeof(WayloniaApp).Assembly.GetManifestResourceStream("Waylonia.Waylonia_Logo.png")!);
         if (client is null || ChannelClients.OwnerOf(client) is not WaypipeAcceptor { Session: not null } owner)
         {
             return;
@@ -805,6 +808,20 @@ internal sealed class DesktopWayloniaApp : WayloniaApp
         var name = owner.Name;
         _sessionWindows[window] = name;
         window.Closed += (_, _) => _sessionWindows.Remove(window);
+        if (window.AppId.Length > 0)
+        {
+            ResolveIcon(name, window.AppId, null, path =>
+            {
+                // The generic launcher icon says less than the Waylonia logo.
+                if (path is null || path == Bluecurve.Fallback() || Waylonia.Shell.Applets.IconImages.Load(path) is not { } bitmap)
+                {
+                    return;
+                }
+
+                Dispatcher.UIThread.Post(() => window.Icon = new WindowIcon(bitmap));
+            });
+        }
+
         if (RunSettings.Host.SessionTitles)
         {
             window.DecorateTitle(title => $"{title} — {name}");
